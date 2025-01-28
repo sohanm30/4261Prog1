@@ -76,12 +76,7 @@ const AddEntryScreen = ({ navigation }) => {
       return;
     }
 
-    const imageURL = await handleUploadImage();
-
-    if (!imageURL) {
-      Alert.alert('Error', 'Failed to upload the image.');
-      return;
-    }
+    const imageURL = image ? await handleUploadImage() : null; 
 
     firestore
       .collection('users')
