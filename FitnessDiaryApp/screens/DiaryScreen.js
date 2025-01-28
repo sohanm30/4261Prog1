@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
   imagePreview: {
     maxWidth: 300,
     maxHeight: 300,
-    width: '100%',
-    height: 200,
+    width: '50%',
+    aspectRatio: 1,
     marginTop: 10,
     borderRadius: 5,
     borderWidth: 1,
