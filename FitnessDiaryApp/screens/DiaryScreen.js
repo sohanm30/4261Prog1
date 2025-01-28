@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, Image, Platform } from 'react-native';
 import { auth, firestore } from '../services/firebaseConfig';
 
-const DiaryScreen = () => {
+const DiaryScreen = ({ navigation }) => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
     color: '#777',
   },
   imagePreview: {
+    width: Platform.OS === 'web' ? '25%' : '100%',
     maxWidth: '100%',
     height: undefined,
     aspectRatio: 1,
