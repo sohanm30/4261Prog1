@@ -19,9 +19,16 @@ const StackNavigator = () => {
       setUser(currentUser);
       setLoading(false);
     });
-
+  
     return () => unsubscribe();
   }, []);
+  
+  // Delay navigation until user state is set and loading is false
+  useEffect(() => {
+    if (!loading) {
+      console.log('Navigating after user state is set');
+    }
+  }, [user, loading]);
 
   if (loading) {
     return null; // Optionally, render a loading indicator here

@@ -1,9 +1,7 @@
-// screens/DiaryScreen.js
-
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { auth, firestore } from '../services/firebaseConfig';
-import DiaryEntry from '../components/DiaryEntry';
+import DiaryEntry from '../components/DiaryEntry'; // Assuming DiaryEntry will handle individual entries
 
 const DiaryScreen = ({ navigation }) => {
   const [entries, setEntries] = useState([]);
@@ -64,7 +62,21 @@ const DiaryScreen = ({ navigation }) => {
         <FlatList
           data={entries}
           keyExtractor={item => item.id}
-          renderItem={({ item }) => <DiaryEntry entry={item} />}
+          renderItem={({ item }) => (
+            <View style={styles.entryContainer}>
+              <Text style={styles.date}>{item.date}</Text>
+              <Text style={styles.exercise}>{item.exercise}</Text>
+              <Text style={styles.effort}>Effort: {item.effort}</Text>
+
+              {/* Display image if available */}
+              {item.imageURL && (
+                <Image
+                  source={{ uri: item.imageURL }}
+                  style={styles.imagePreview}
+                />
+              )}
+            </View>
+          )}
         />
       )}
     </View>
@@ -92,6 +104,35 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 18,
     color: '#666',
+  },
+  entryContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 10,
+  },
+  date: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  exercise: {
+    fontSize: 16,
+    marginTop: 5,
+  },
+  effort: {
+    fontSize: 14,
+    marginTop: 5,
+    color: '#777',
+  },
+  imagePreview: {
+    maxWidth: 300,
+    maxHeight: 300,
+    width: '100%',
+    height: 200,
+    marginTop: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
 });
 

@@ -7,9 +7,12 @@ import 'firebase/compat/storage';
 
 //Removed firebase config, add API keys here.
 
+
 // Initialize Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
+} else {
+  firebase.app(); // if already initialized
 }
 
 // Export Firebase services for use in your app
