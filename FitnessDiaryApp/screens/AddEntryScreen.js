@@ -179,11 +179,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   imagePreview: {
-    width: '50%',
-    height: '50%',
+    maxWidth: 300,
+    maxHeight: 300,
+    width: '40%',
+    aspectRatio: 1,
     marginVertical: 10,
     borderRadius: 5,
     borderWidth: 2,
+    aspectRatio: 1,
     borderColor: '#ccc',
   },
 });
