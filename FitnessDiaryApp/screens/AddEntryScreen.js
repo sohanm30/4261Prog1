@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, Image } from 'react-native';
-import { auth, firestore } from '../services/firebaseConfig';
-import firebase from '../services/firebaseConfig';
-import * as ImagePicker from 'expo-image-picker'; // Import image picker
+import { auth, firestore, storage } from '../services/firebaseConfig'; // Import Firebase
+import firebase from 'firebase/compat/app'; // Import firebase explicitly
+import 'firebase/compat/firestore'; // Ensure firestore is imported
+import * as ImagePicker from 'expo-image-picker';
 
 const AddEntryScreen = ({ navigation }) => {
   const [date, setDate] = useState('');
@@ -38,19 +39,21 @@ const AddEntryScreen = ({ navigation }) => {
     try {
       setUploading(true);
 
-      // Create a unique file name
-      const fileName = `${auth.currentUser.uid}-${Date.now()}.jpg`;
-      const response = await fetch(image);
-      const blob = await response.blob();
+      // iOS fix: Handle image URI properly
+      const isIOS = Platform.OS === 'ios';
+      const uri = isIOS ? image.replace('file://', '') : image;
 
-      // Upload to Firebase Storage
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const fileName = `${auth.currentUser.uid}-${Date.now()}.jpg`;
+
+      // Upload the image to Firebase Storage
       const storageRef = storage.ref().child(`images/${fileName}`);
       await storageRef.put(blob);
 
       // Get the download URL
       const downloadURL = await storageRef.getDownloadURL();
       setUploading(false);
-
       return downloadURL;
     } catch (error) {
       setUploading(false);
@@ -81,6 +84,11 @@ const AddEntryScreen = ({ navigation }) => {
 
     const imageURL = await handleUploadImage();
 
+    if (!imageURL) {
+      Alert.alert('Error', 'Failed to upload the image.');
+      return;
+    }
+
     // Add entry to Firestore
     firestore
       .collection('users')
@@ -90,12 +98,14 @@ const AddEntryScreen = ({ navigation }) => {
         date,
         exercise,
         effort: effortValue,
-        imageURL,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        imageURL, // Save the image URL in Firestore
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), // Timestamp fix
       })
       .then(() => {
         Alert.alert('Success', 'Entry added successfully');
-        navigation.goBack();
+        if (navigation) {
+          navigation.navigate('Diary'); // manually forcing Diary screen
+        }
       })
       .catch(error => {
         Alert.alert('Error', error.message);
