@@ -1,7 +1,5 @@
-// components/DiaryEntry.js
-
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 
 const DiaryEntry = ({ entry }) => {
   return (
@@ -9,6 +7,13 @@ const DiaryEntry = ({ entry }) => {
       <Text style={styles.date}>{entry.date}</Text>
       <Text style={styles.exercise}>{entry.exercise}</Text>
       <Text style={styles.effort}>Effort: {entry.effort}/10</Text>
+      {entry.imageURL && (
+        <Image
+          source={{ uri: entry.imageURL }}
+          style={styles.imagePreview}
+          resizeMode="contain"
+        />
+      )}
     </View>
   );
 };
@@ -31,7 +36,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     color: 'gray',
-  },
+  }
 });
 
 export default DiaryEntry;
