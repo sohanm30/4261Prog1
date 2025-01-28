@@ -1,16 +1,65 @@
 // screens/AddEntryScreen.js
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, Image } from 'react-native';
 import { auth, firestore } from '../services/firebaseConfig';
-import firebase from '../services/firebaseConfig'; // Add this line
+import firebase from '../services/firebaseConfig';
+import * as ImagePicker from 'expo-image-picker'; // Import image picker
 
 const AddEntryScreen = ({ navigation }) => {
   const [date, setDate] = useState('');
   const [exercise, setExercise] = useState('');
   const [effort, setEffort] = useState('');
+  const [image, setImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  const handleAddEntry = () => {
+  const handlePickImage = async () => {
+    // Request permissions and open image picker
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied', 'We need access to your gallery to upload an image.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri); // Store the selected image URI
+    }
+  };
+
+  const handleUploadImage = async () => {
+    if (!image) return null;
+
+    try {
+      setUploading(true);
+
+      // Create a unique file name
+      const fileName = `${auth.currentUser.uid}-${Date.now()}.jpg`;
+      const response = await fetch(image);
+      const blob = await response.blob();
+
+      // Upload to Firebase Storage
+      const storageRef = storage.ref().child(`images/${fileName}`);
+      await storageRef.put(blob);
+
+      // Get the download URL
+      const downloadURL = await storageRef.getDownloadURL();
+      setUploading(false);
+
+      return downloadURL;
+    } catch (error) {
+      setUploading(false);
+      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      return null;
+    }
+  };
+
+  const handleAddEntry = async () => {
     if (date === '' || exercise === '' || effort === '') {
       Alert.alert('Error', 'Please fill out all fields');
       return;
@@ -30,6 +79,8 @@ const AddEntryScreen = ({ navigation }) => {
       return;
     }
 
+    const imageURL = await handleUploadImage();
+
     // Add entry to Firestore
     firestore
       .collection('users')
@@ -39,6 +90,7 @@ const AddEntryScreen = ({ navigation }) => {
         date,
         exercise,
         effort: effortValue,
+        imageURL,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {
@@ -74,7 +126,26 @@ const AddEntryScreen = ({ navigation }) => {
         onChangeText={setEffort}
         keyboardType="numeric"
       />
-      <Button title="Add Entry" onPress={handleAddEntry} />
+      <Button title="Pick Image" onPress={handlePickImage} />
+      {image && (
+        Platform.OS === 'web' ? (
+          <img
+            src={image}
+            alt="Selected preview"
+            style={styles.imagePreview}
+          />
+        ) : (
+          <Image
+            source={{ uri: image }}
+            style={styles.imagePreview}
+          />
+        )
+      )}
+      <Button
+        title={uploading ? 'Uploading...' : 'Add Entry'}
+        onPress={handleAddEntry}
+        disabled={uploading}
+      />
     </View>
   );
 };
@@ -96,6 +167,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 20,
+  },
+  imagePreview: {
+    width: '50%',
+    height: '50%',
+    marginVertical: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#ccc',
   },
 });
 
