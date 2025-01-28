@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Platform, Image } from 'react-native';
-import { auth, firestore, storage } from '../services/firebaseConfig'; // Import Firebase
-import firebase from 'firebase/compat/app'; // Import firebase explicitly
-import 'firebase/compat/firestore'; // Ensure firestore is imported
+import { auth, firestore, storage } from '../services/firebaseConfig';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
 import * as ImagePicker from 'expo-image-picker';
 
 const AddEntryScreen = ({ navigation }) => {
@@ -15,7 +15,6 @@ const AddEntryScreen = ({ navigation }) => {
   const [uploading, setUploading] = useState(false);
 
   const handlePickImage = async () => {
-    // Request permissions and open image picker
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission denied', 'We need access to your gallery to upload an image.');
@@ -39,7 +38,6 @@ const AddEntryScreen = ({ navigation }) => {
     try {
       setUploading(true);
 
-      // iOS fix: Handle image URI properly
       const isIOS = Platform.OS === 'ios';
       const uri = isIOS ? image.replace('file://', '') : image;
 
@@ -47,11 +45,9 @@ const AddEntryScreen = ({ navigation }) => {
       const blob = await response.blob();
       const fileName = `${auth.currentUser.uid}-${Date.now()}.jpg`;
 
-      // Upload the image to Firebase Storage
       const storageRef = storage.ref().child(`images/${fileName}`);
       await storageRef.put(blob);
 
-      // Get the download URL
       const downloadURL = await storageRef.getDownloadURL();
       setUploading(false);
       return downloadURL;
@@ -68,14 +64,12 @@ const AddEntryScreen = ({ navigation }) => {
       return;
     }
 
-    // Simple validation for effort
     const effortValue = parseInt(effort);
     if (isNaN(effortValue) || effortValue < 1 || effortValue > 10) {
       Alert.alert('Error', 'Effort must be a number between 1 and 10');
       return;
     }
 
-    // Validate date format (basic)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(date)) {
       Alert.alert('Error', 'Date must be in YYYY-MM-DD format');
@@ -89,7 +83,6 @@ const AddEntryScreen = ({ navigation }) => {
       return;
     }
 
-    // Add entry to Firestore
     firestore
       .collection('users')
       .doc(auth.currentUser.uid)
@@ -98,13 +91,13 @@ const AddEntryScreen = ({ navigation }) => {
         date,
         exercise,
         effort: effortValue,
-        imageURL, // Save the image URL in Firestore
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), // Timestamp fix
+        imageURL,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       })
       .then(() => {
         Alert.alert('Success', 'Entry added successfully');
         if (navigation) {
-          navigation.navigate('Diary'); // manually forcing Diary screen
+          navigation.navigate('Diary');
         }
       })
       .catch(error => {
@@ -164,30 +157,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f7f7',
   },
   label: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#333',
   },
   input: {
     height: 50,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 15,
     marginBottom: 20,
+    backgroundColor: '#fff',
+    fontSize: 16,
   },
   imagePreview: {
     maxWidth: 300,
     maxHeight: 300,
-    width: '40%',
+    width: '100%',
+    height: undefined,
     aspectRatio: 1,
-    marginVertical: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    aspectRatio: 1,
-    borderColor: '#ccc',
+    marginVertical: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
 });
 

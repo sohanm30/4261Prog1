@@ -1,45 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { auth, firestore } from '../services/firebaseConfig';
-import DiaryEntry from '../components/DiaryEntry'; // Assuming DiaryEntry will handle individual entries
 
-const DiaryScreen = ({ navigation }) => {
+const DiaryScreen = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch diary entries from Firestore
   useEffect(() => {
     const unsubscribe = firestore
       .collection('users')
       .doc(auth.currentUser.uid)
       .collection('diary')
       .orderBy('date', 'desc')
-      .onSnapshot(snapshot => {
-        const fetchedEntries = [];
-        snapshot.forEach(doc => {
-          fetchedEntries.push({ id: doc.id, ...doc.data() });
-        });
-        setEntries(fetchedEntries);
-        setLoading(false);
-      }, error => {
-        Alert.alert('Error', error.message);
-        setLoading(false);
-      });
+      .onSnapshot(
+        snapshot => {
+          const fetchedEntries = [];
+          snapshot.forEach(doc => {
+            fetchedEntries.push({ id: doc.id, ...doc.data() });
+          });
+          setEntries(fetchedEntries);
+          setLoading(false);
+        },
+        error => {
+          Alert.alert('Error', error.message);
+          setLoading(false);
+        }
+      );
 
     return () => unsubscribe();
   }, []);
 
-  const handleAddEntry = () => {
-    navigation.navigate('AddEntry');
-  };
-
   const handleLogout = () => {
-    auth.signOut()
-      .then(() => {
-        navigation.navigate('Login');
-      })
-      .catch(error => {
-        Alert.alert('Logout Error', error.message);
-      });
+    auth.signOut().catch(error => {
+      Alert.alert('Logout Error', error.message);
+    });
   };
 
   if (loading) {
@@ -53,7 +48,7 @@ const DiaryScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.buttonContainer}>
-        <Button title="Add Entry" onPress={handleAddEntry} />
+        <Button title="Add Entry" onPress={() => navigation.navigate('AddEntry')} />
         <Button title="Logout" onPress={handleLogout} color="red" />
       </View>
       {entries.length === 0 ? (
@@ -67,8 +62,6 @@ const DiaryScreen = ({ navigation }) => {
               <Text style={styles.date}>{item.date}</Text>
               <Text style={styles.exercise}>{item.exercise}</Text>
               <Text style={styles.effort}>Effort: {item.effort}</Text>
-
-              {/* Display image if available */}
               {item.imageURL && (
                 <Image
                   source={{ uri: item.imageURL }}
@@ -87,7 +80,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f7f7',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -103,21 +96,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 50,
     fontSize: 18,
-    color: '#666',
+    color: '#777',
   },
   entryContainer: {
-    padding: 10,
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   date: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
   },
   exercise: {
     fontSize: 16,
     marginTop: 5,
+    color: '#555',
   },
   effort: {
     fontSize: 14,
@@ -125,14 +126,13 @@ const styles = StyleSheet.create({
     color: '#777',
   },
   imagePreview: {
-    maxWidth: 300,
-    maxHeight: 300,
-    width: '50%',
+    maxWidth: '100%',
+    height: undefined,
     aspectRatio: 1,
     marginTop: 10,
-    borderRadius: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
   },
 });
 

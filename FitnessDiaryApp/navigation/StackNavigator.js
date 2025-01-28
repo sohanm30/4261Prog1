@@ -1,5 +1,3 @@
-// navigation/StackNavigator.js
-
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -7,6 +5,7 @@ import { auth } from '../services/firebaseConfig';
 import LoginScreen from '../screens/LoginScreen';
 import DiaryScreen from '../screens/DiaryScreen';
 import AddEntryScreen from '../screens/AddEntryScreen';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -16,27 +15,30 @@ const StackNavigator = () => {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(currentUser => {
-      setUser(currentUser);
+      setUser(currentUser || null);
       setLoading(false);
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
-  // Delay navigation until user state is set and loading is false
-  useEffect(() => {
-    if (!loading) {
-      console.log('Navigating after user state is set');
-    }
-  }, [user, loading]);
 
   if (loading) {
-    return null; // Optionally, render a loading indicator here
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: '#f7f7f7' },
+          headerTitleStyle: { color: '#333' },
+          headerTintColor: '#007aff',
+        }}
+      >
         {user ? (
           <>
             <Stack.Screen 
@@ -54,9 +56,8 @@ const StackNavigator = () => {
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ 
-              headerShown: false, // Hide header for Login screen
-              animationTypeForReplace: user ? 'push' : 'pop'
+            options={{
+              headerShown: false,
             }}
           />
         )}
@@ -64,5 +65,14 @@ const StackNavigator = () => {
     </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+  },
+});
 
 export default StackNavigator;

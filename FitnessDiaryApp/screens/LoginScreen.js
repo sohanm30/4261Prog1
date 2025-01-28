@@ -1,10 +1,8 @@
-// screens/LoginScreen.js
-
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { auth } from '../services/firebaseConfig';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -16,7 +14,7 @@ const LoginScreen = ({ navigation }) => {
 
     auth.signInWithEmailAndPassword(email, password)
       .then(() => {
-        navigation.navigate('Diary'); // Use navigate instead of replace
+        Alert.alert('Success', 'Logged in successfully!');
       })
       .catch(error => {
         Alert.alert('Login Error', error.message);
@@ -31,7 +29,7 @@ const LoginScreen = ({ navigation }) => {
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(() => {
-        navigation.navigate('Diary'); // Use navigate instead of replace
+        Alert.alert('Success', 'Account created successfully!');
       })
       .catch(error => {
         Alert.alert('Sign Up Error', error.message);
@@ -68,21 +66,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f7f7',
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 40,
     textAlign: 'center',
+    color: '#333',
   },
   input: {
     height: 50,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 15,
     marginBottom: 20,
+    backgroundColor: '#fff',
+    fontSize: 16,
   },
   separator: {
     height: 20,
